@@ -5,20 +5,20 @@ import numpy as np
 from scipy.fftpack import dct
 from PIL import Image as im 
 import matplotlib.pyplot as plt
-
-directory='/Users/ariadnarotaru/Desktop/249r/assignments-Adriana172/Snoring_Dataset' # path to the dataset folder
+import ipdb
+directory='./Snoring_Dataset' # path to the dataset folder
 # assumes you have a processed data folder which contains 2 empty folders: '0' and '1'
-save_directory = "/Users/ariadnarotaru/Desktop/249r/assignments-Adriana172/Snoring-Detection/processed_data/" # where processed data goes; 
+save_directory = "./processed_data" # where processed data goes; 
 def main():
     # os.listdir(directory + '/1')]
     # number_of_files = 0
-    extensions = ["/0", "/1"]
+    extensions = ["/1","/0"]
     for extension in extensions:
         for filename in os.listdir(directory + extension):
             if filename.endswith(".wav"): 
                 
                 fs, signal = wav.read(directory + extension + "/" + filename) 
-        
+
                 if signal.ndim != 1:
                     length = signal.shape[0] / fs
                     # print(f"length = {length}s")
@@ -27,7 +27,7 @@ def main():
                     # plt.plot(time, signal[:, 1], label="Right channel")
                     # plt.show()
                     signal = signal[:,0]
-                    # break
+
 
                 print(" shape of signal ", signal.shape) 
                 print( " signal dimension ", signal.ndim)
@@ -83,12 +83,10 @@ def main():
                 # above array 
                 data = im.fromarray(dct_log_features) 
                 data = data.convert("L")
-
-                
-                # saving the final output  
-                # as a PNG file 
                 # Update the saving directory
-                data.save(save_directory + extension + "/" + filename[:-3] + 'png') 
+                data.save(save_directory + extension + "/" + filename[:-3] + 'png')
+                np.save(save_directory + extension + "/" + filename[:-4] + 'psd.npy',power_spectrum)
+                np.save(save_directory + extension + "/" + filename[:-4] + 'dct.npy',power_spectrum)
                 ############# Extract MFCC features #############
                 # mfcc = feature.mfcc(signal, sampling_frequency=fs,
                 #                  frame_length=0.020, frame_stride=0.01,
