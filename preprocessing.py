@@ -6,10 +6,11 @@ from scipy.fftpack import dct
 from PIL import Image as im 
 import matplotlib.pyplot as plt
 import ipdb
-directory='./Snoring_Dataset' # path to the dataset folder
-# assumes you have a processed data folder which contains 2 empty folders: '0' and '1'
-save_directory = "./processed_data" # where processed data goes; 
-def main():
+ 
+def main(main_path='.'):
+    directory=main_path+'/Snoring_Dataset' # path to the dataset folder
+    # assumes you have a processed data folder which contains 2 empty folders: '0' and '1'
+    save_directory = main_path+"/processed_data" # where processed data goes;
     # os.listdir(directory + '/1')]
     # number_of_files = 0
     extensions = ["/1","/0"]
@@ -86,7 +87,7 @@ def main():
                 # Update the saving directory
                 data.save(save_directory + extension + "/" + filename[:-3] + 'png')
                 np.save(save_directory + extension + "/" + filename[:-4] + 'psd.npy',power_spectrum)
-                np.save(save_directory + extension + "/" + filename[:-4] + 'dct.npy',power_spectrum)
+                np.save(save_directory + extension + "/" + filename[:-4] + 'dct.npy',dct_log_features)
                 ############# Extract MFCC features #############
                 # mfcc = feature.mfcc(signal, sampling_frequency=fs,
                 #                  frame_length=0.020, frame_stride=0.01,
