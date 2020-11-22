@@ -32,5 +32,5 @@ def train_test_split(sizes='80_20_0',seed = 66):
                 writer.writerow([0,y0[i]])
             for i in range(int(train_s*1./100*N)+int(test_s*1./100*N),N):
                 writer.writerow([1,y1[i]])
-train_test_split()
+train_test_split('80_10_10')
 
