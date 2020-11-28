@@ -6,21 +6,23 @@ from scipy.fftpack import dct
 from PIL import Image as im 
 import matplotlib.pyplot as plt
 import math 
+from scipy import fftpack
+from skimage import util
+
 
 
 directory='/Users/ariadnarotaru/Desktop/249r/assignments-Adriana172/Snoring_Dataset' # path to the dataset folder
 # assumes you have a processed data folder which contains 2 empty folders: '0' and '1'
 save_directory = "/Users/ariadnarotaru/Desktop/249r/assignments-Adriana172/Snoring-Detection/processed_data" # where processed data goes; 
 def main():
-    # os.listdir(directory + '/1')]
-    # number_of_files = 0
+
     extensions = ["/0", "/1"]
     for extension in extensions:
         for filename in os.listdir(directory + extension):
             if filename.endswith(".wav"): 
-                
+
                 fs, signal = wav.read(directory + extension + "/" + filename) 
-        
+
                 if signal.ndim != 1:
                     length = signal.shape[0] / fs
                     # print(f"length = {length}s")
@@ -29,89 +31,137 @@ def main():
                     # plt.plot(time, signal[:, 1], label="Right channel")
                     # plt.show()
                     signal = signal[:,0]
-                    # break
 
-                print(" shape of signal ", signal.shape) 
-                print( " signal dimension ", signal.ndim)
-
-                print(" sampling frequency ", fs)
-                # print("\n \n ")
-                # number_of_files +=1
-                # signal = processing.preemphasis(signal, cof=0.98) 
-
-                # Stacking frames 
-                frames = processing.stack_frames(signal, sampling_frequency=fs,
-                                            frame_length=0.030,   # the frame size of 30 ms 
-                                            frame_stride=0.030,   # decide what the stride should be 
-                                            zero_padding=False)
-                print(" number of frames ", frames.shape)
-
-                # # Extracting power spectrum
-                power_spectrum = processing.power_spectrum(frames, fft_points=512)
-                print('power spectrum shape=', power_spectrum.shape)
-
-                # Mel filterbanks Calculation  - using https://github.com/jameslyons/python_speech_features/blob/master/python_speech_features/base.py as example
-                # ......... the first 10 filters are placed linearly around 100, 200, . . . 1000 Hz. Above 1 kHz,
-                # these bands are placed with logarithmic Mel-scale
-                # first_10_filterbanks = get_filterbanks(nfilt=10,nfft=512,samplerate=fs,lowfreq=100,highfreq=1000)
-                # c_filterbanks = custom_filterbanks(nfilt=10,nfft=512,samplerate=44100,lowfreq=100,highfreq=1000)
-                # print(" first_10 ",first_10_filterbanks[0])
-                # print(" c filterbanks ",np.transpose(c_filterbanks)[0])
-                # break
-                # last22_filterbanks = get_filterbanks(nfilt=22,nfft=512,samplerate=fs,lowfreq=1100, highfreq=None)
-                first_10_filterbanks = custom_filterbanks(nfilt=10,nfft=512,samplerate=fs,lowfreq=100,highfreq=1000)
-                last22_filterbanks = custom_filterbanks(nfilt=22,nfft=512,samplerate=fs,lowfreq=1100,highfreq=None)
-
-                # first_10  = feature.mfe(signal, sampling_frequency=fs, frame_length=0.03, frame_stride=0.01,
-                #             num_filters=10, fft_length=512, low_frequency=0, high_frequency=1000)
-                # last_22  = feature.lmfe(signal, sampling_frequency=fs, frame_length=0.03, frame_stride=0.01,
-                #             num_filters=22, fft_length=512, low_frequency=1000)
-                print(" first 10 shape ", first_10_filterbanks.shape)
-                print(" last 22 shape ", last22_filterbanks.shape)
-                mel_matrix = np.concatenate((first_10_filterbanks, last22_filterbanks), axis=1)
-                print(" CONCAT shape ", mel_matrix.shape)
-                mel_matrix = np.transpose(mel_matrix)
-                assert(len(mel_matrix) == 32)
-                print(len(mel_matrix[0]))
-                assert(len(mel_matrix[0]) == len(power_spectrum[0]))
-
-                # # Compute spectrogram  and filterbank energies
-                energy = np.sum(power_spectrum,1) # this stores the total energy in each frame
-                energy = np.where(energy == 0,np.finfo(float).eps,energy) # if energy is zero, we get problems with log
-
-                features = np.dot(power_spectrum,mel_matrix.T) # compute the filterbank energies
-                features = np.where(features == 0,np.finfo(float).eps,features) # if feature is zero, we get problems with log
-                log_features = np.log(features)
-
-                # DCT  -- more info: https://labrosa.ee.columbia.edu/doc/HTKBook21/node54.html
-                numcep = 32 # number of cepstral coefficients
-                dct_log_features = dct(log_features, type=2, axis=1)[:,:numcep]
-                assert(dct_log_features.shape == (32, 32))
-
+                # Run either FFT or MFCC 
+                fft = apply_fft(fs, signal)
+                
+                # dct_log_features = apply_mfcc(fs, signal)
+                
                 # creating image object of 
                 # above array 
-                data = im.fromarray(dct_log_features, "L") 
-                # data = data.convert("RGB")
-                # data = im.fromarray(np.uint8(dct_log_features)).convert('RGB')
+                data = im.fromarray(fft, "L") 
 
-
-
-                
-                # saving the final output  
-                # as a PNG file 
+                # saving the final output as a PNG file 
                 # Update the saving directory
                 data.save(save_directory + extension  + "/" + filename[:-3] + 'png') 
+                
                 ############# Extract MFCC features #############
                 # mfcc = feature.mfcc(signal, sampling_frequency=fs,
                 #                  frame_length=0.020, frame_stride=0.01,
                 #                  num_cepstral=32,
                 #                  num_filters=32, fft_length=512, low_frequency=0,
                 #                  high_frequency=None)
-                
-                #  the logarithm of all filterbank energies and
-                # then their discrete cosine transform (DCT) are calculated to decorrelate the filter bank coefficients
-            
-    
+
+
+def apply_fft(fs, signal):
+
+    N = signal.shape[0]
+    L = N / fs
+
+    M = int(0.030*fs)
+    step = int(0.02*fs)
+    print( " M is ", M)
+    slices = util.view_as_windows(signal, window_shape=(M,), step=step)
+    win = np.hanning(M + 1)[:-1]
+    slices = slices * win
+    print( " slices shape ", slices.T.shape)
+
+    spectrum = np.fft.fft(slices, axis=0)
+    spectrum = np.abs(spectrum)
+    averaged_matrix = []
+    for row in spectrum:
+        # print( " row size ", len(row))
+        n_bundles = 221
+        size_bundle = round(len(row)/n_bundles)
+        new_row = []
+        index = 0
+        last_w_size = len(row) - (n_bundles-1) * size_bundle
+        limit = len(row) - last_w_size
+        # print(" size bundle ", size_bundle)
+        # print(" last w size ", last_w_size)
+        # print(" limit ", limit)
+        while (index < limit):
+            mean_res = np.mean(row[index:index + size_bundle])
+            new_row.append(mean_res)
+            index = index + size_bundle
+        mean_res = np.mean(row[index:])
+        new_row.append(mean_res)
+        # print(" len new row ", len(new_row))
+        assert(len(new_row) == n_bundles)
+        averaged_matrix.append(new_row)
+    print( " number of rows ", len(averaged_matrix))
+    assert(len(averaged_matrix)== 49) 
+    # f, ax = plt.subplots(figsize=(4.8, 2.4))
+    print(" averaged matrix  shape ", np.array(averaged_matrix).shape)
+    # ax.imshow(S, origin='lower', cmap='viridis',
+    #       extent=(0, L, 0, fs / 2 / 1000))
+    # ax.axis('tight')
+    # ax.set_ylabel('Frequency [kHz]')
+    # ax.set_xlabel('Time [s]')   
+
+    return np.array(averaged_matrix)
+    # frames = processing.stack_frames(signal, sampling_frequency=fs,
+    #                                         frame_length=0.030,   # the frame size of 30 ms 
+    #                                         frame_stride=0.020,   # decide what the stride should be 
+    #                                         zero_padding=True)
+    # print(" frames shape ", frames.shape) # 49 frames each around 1320 points 
+    # assert(len(frames) == 49)
+    # FFT = abs(fftpack.fft(frames[0]))
+    # freqs = fftpack.fftfreq(len(FFT), 1.0/fs)
+    # print(" len y ", len(freqs))
+    # plt.plot(freqs[range(len(FFT)//2)],FFT[range(len(FFT)//2)])
+    # plt.xlabel("Frequency Domain (Hz)")
+    # plt.ylabel("Amplitude")
+    # plt.show()
+
+def apply_mfcc(fs, signal):
+
+
+    # signal = processing.preemphasis(signal, cof=0.98) 
+
+    # Stacking frames 
+    frames = processing.stack_frames(signal, sampling_frequency=fs,
+                                            frame_length=0.030,   # the frame size of 30 ms 
+                                            frame_stride=0.030,   # decide what the stride should be 
+                                            zero_padding=False)
+
+    # # Extracting power spectrum
+    power_spectrum = processing.power_spectrum(frames, fft_points=512)
+
+    # Mel filterbanks Calculation  - using https://github.com/jameslyons/python_speech_features/blob/master/python_speech_features/base.py as example
+    # ......... the first 10 filters are placed linearly around 100, 200, . . . 1000 Hz. Above 1 kHz,
+    # these bands are placed with logarithmic Mel-scale
+    # first_10_filterbanks = get_filterbanks(nfilt=10,nfft=512,samplerate=fs,lowfreq=100,highfreq=1000)
+    # c_filterbanks = custom_filterbanks(nfilt=10,nfft=512,samplerate=44100,lowfreq=100,highfreq=1000)
+    # last22_filterbanks = get_filterbanks(nfilt=22,nfft=512,samplerate=fs,lowfreq=1100, highfreq=None)
+    first_10_filterbanks = custom_filterbanks(nfilt=10,nfft=512,samplerate=fs,lowfreq=100,highfreq=1000)
+    last22_filterbanks = custom_filterbanks(nfilt=22,nfft=512,samplerate=fs,lowfreq=1100,highfreq=None)
+
+    # first_10  = feature.mfe(signal, sampling_frequency=fs, frame_length=0.03, frame_stride=0.01,
+    #             num_filters=10, fft_length=512, low_frequency=0, high_frequency=1000)
+    # last_22  = feature.lmfe(signal, sampling_frequency=fs, frame_length=0.03, frame_stride=0.01,
+    #             num_filters=22, fft_length=512, low_frequency=1000)
+    mel_matrix = np.concatenate((first_10_filterbanks, last22_filterbanks), axis=1)
+    mel_matrix = np.transpose(mel_matrix)
+    assert(len(mel_matrix) == 32)
+    print(len(mel_matrix[0]))
+    assert(len(mel_matrix[0]) == len(power_spectrum[0]))
+
+    # # Compute spectrogram  and filterbank energies
+    energy = np.sum(power_spectrum,1) # this stores the total energy in each frame
+    energy = np.where(energy == 0,np.finfo(float).eps,energy) # if energy is zero, we get problems with log
+
+    features = np.dot(power_spectrum,mel_matrix.T) # compute the filterbank energies
+    features = np.where(features == 0,np.finfo(float).eps,features) # if feature is zero, we get problems with log
+    log_features = np.log(features)
+
+    # DCT  -- more info: https://labrosa.ee.columbia.edu/doc/HTKBook21/node54.html
+    numcep = 32 # number of cepstral coefficients
+    dct_log_features = dct(log_features, type=2, axis=1)[:,:numcep]
+    assert(dct_log_features.shape == (32, 32))
+
+
+    return dct_log_features
 
 
 
