@@ -60,46 +60,36 @@ def apply_fft(fs, signal):
 
     M = int(0.030*fs)
     step = int(0.02*fs)
-    print( " M is ", M)
     slices = util.view_as_windows(signal, window_shape=(M,), step=step)
     win = np.hanning(M + 1)[:-1]
     slices = slices * win
-    print( " slices shape ", slices.T.shape)
 
     spectrum = np.fft.fft(slices, axis=0)
     spectrum = np.abs(spectrum)
     averaged_matrix = []
     for row in spectrum:
-        # print( " row size ", len(row))
         n_bundles = 221
         size_bundle = round(len(row)/n_bundles)
         new_row = []
         index = 0
         last_w_size = len(row) - (n_bundles-1) * size_bundle
         limit = len(row) - last_w_size
-        # print(" size bundle ", size_bundle)
-        # print(" last w size ", last_w_size)
-        # print(" limit ", limit)
+
         while (index < limit):
             mean_res = np.mean(row[index:index + size_bundle])
             new_row.append(mean_res)
             index = index + size_bundle
         mean_res = np.mean(row[index:])
         new_row.append(mean_res)
-        # print(" len new row ", len(new_row))
         assert(len(new_row) == n_bundles)
+
         averaged_matrix.append(new_row)
-    print( " number of rows ", len(averaged_matrix))
+
     assert(len(averaged_matrix)== 49) 
-    # f, ax = plt.subplots(figsize=(4.8, 2.4))
-    print(" averaged matrix  shape ", np.array(averaged_matrix).shape)
-    # ax.imshow(S, origin='lower', cmap='viridis',
-    #       extent=(0, L, 0, fs / 2 / 1000))
-    # ax.axis('tight')
-    # ax.set_ylabel('Frequency [kHz]')
-    # ax.set_xlabel('Time [s]')   
 
     return np.array(averaged_matrix)
+
+    # For visualization purposes 
     # frames = processing.stack_frames(signal, sampling_frequency=fs,
     #                                         frame_length=0.030,   # the frame size of 30 ms 
     #                                         frame_stride=0.020,   # decide what the stride should be 
@@ -186,7 +176,7 @@ def get_filterbanks(nfilt=10,nfft=512,samplerate=44100,lowfreq=0,highfreq=None):
     melpoints = np.linspace(lowmel,highmel,nfilt+2)
     if lowfreq==100:
         melpoints = np.array([65.24094035, 98.72083137, 132.20072238, 165.6806134 , 199.16050442, 232.64039543 ,266.12028645, 299.60017747 ,333.08006848 ,366.5599595, 400.03985052, 433.51974153])
-    # print (" melpoints ", melpoints)
+
     # our points are in Hz, but we use fft bins, so we have to convert
     #  from Hz to fft bin number
     bin = np.floor((nfft+1)*mel2hz(melpoints)/samplerate)
@@ -248,14 +238,12 @@ def custom_filterbanks(nfilt=10,nfft=512,samplerate=44100,lowfreq=0,highfreq=Non
     highfreq = mel(highfreq)
     if lowfreq != 100:
         bankpoints,bankpointsnormal = createbankpoints(lowerfreq,highfreq, nfilt)
-        print( "LAST FILTER AT ", bankpointsnormal[-1])
      
 
     bins = np.array([])
-    print(" bankpoints normal ", bankpointsnormal)
     for i in bankpointsnormal:
         bins = np.append(bins, np.floor((nfft + 1) * float(i)/samplerate))
-    # assert(len(bins) == nfilt )
+
     flbank = np.zeros((remn, len(bins)))
 
     for i in range(1,len(bins) - 1):
