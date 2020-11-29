@@ -36,7 +36,7 @@ from tensorflow.python.ops import gen_audio_ops as audio_ops
 from tensorflow.python.ops import io_ops
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
-
+import ipdb,csv
 tf.compat.v1.disable_eager_execution()
 
 # If it's available, load the specialized feature generator. If this doesn't
@@ -308,6 +308,22 @@ class AudioProcessor(object):
     # It's multiplied by zero later, so the content doesn't matter.
     #silence_wav_path = self.data_index['training'][0]['file']
     '''
+    for k in ['training','validation','testing']:
+        c1 = 0
+        c2 = 0
+        t = []
+        for i in self.data_index[k]:
+            if i['label']=='snoring':c2+=1
+            else: c1+=1
+            t.append((i['file'].split('.wav')[0]).split('/')[-1])
+        with open('../processed_data/{}.csv'.format(k),'w') as csvfile:
+            writer = csv.writer(csvfile)
+            for i in range(len(t)):
+                writer.writerow(t[i].split('_'))
+        print (len(t)==len(set(t)))
+        print (k,c1,c2)
+        print (t)
+
     for set_index in ['validation', 'testing', 'training']:
       set_size = len(self.data_index[set_index])
       silence_size = int(math.ceil(set_size * silence_percentage / 100))
