@@ -56,5 +56,5 @@ ear.
 - To edit training model script see 'Snoring-Detection/deployment/tensorflow1/tensorflow/examples/speech_commands'
 - rename snoring dataset directories to 'snoring' and 'no_snoring' 
 - change data pathways 
-- include "_background_noise_" directory from wake words dataset in dataset directory 
+- include "\_background_noise\_" directory from wake words dataset in dataset directory 
 - make sure to check all paths to make sure they are specific to your setup 
