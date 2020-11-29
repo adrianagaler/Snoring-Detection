@@ -7,14 +7,11 @@ from PIL import Image as im
 import matplotlib.pyplot as plt
 import math 
 from scipy import fftpack
-from skimage import util
+import ipdb
 
 
 
-directory='/Users/ariadnarotaru/Desktop/249r/assignments-Adriana172/Snoring_Dataset' # path to the dataset folder
-# assumes you have a processed data folder which contains 2 empty folders: '0' and '1'
-save_directory = "/Users/ariadnarotaru/Desktop/249r/assignments-Adriana172/Snoring-Detection/processed_data" # where processed data goes; 
-def main():
+def main(directory, save_directory,method='mfcc',save_img = True):
 
     extensions = ["/0", "/1"]
     for extension in extensions:
@@ -33,24 +30,16 @@ def main():
                     signal = signal[:,0]
 
                 # Run either FFT or MFCC 
-                fft = apply_fft(fs, signal)
-                
-                # dct_log_features = apply_mfcc(fs, signal)
-                
+                if method=='fft':features = apply_fft(fs, signal)
+                elif method=='mfcc':features = apply_mfcc(fs, signal)
+                else: raise Exception('Exception')
+                np.save(save_directory + extension  + '/'+filename[:-4]+method+'.npy',features)
                 # creating image object of 
                 # above array 
-                data = im.fromarray(fft, "L") 
-
-                # saving the final output as a PNG file 
-                # Update the saving directory
-                data.save(save_directory + extension  + "/" + filename[:-3] + 'png') 
+                if save_img: 
+                    data = im.fromarray(fft, "L") 
+                    data.save(save_directory + extension  + "/" + filename[:-3] + 'png') 
                 
-                ############# Extract MFCC features #############
-                # mfcc = feature.mfcc(signal, sampling_frequency=fs,
-                #                  frame_length=0.020, frame_stride=0.01,
-                #                  num_cepstral=32,
-                #                  num_filters=32, fft_length=512, low_frequency=0,
-                #                  high_frequency=None)
 
 
 def apply_fft(fs, signal):
@@ -107,7 +96,7 @@ def apply_fft(fs, signal):
 def apply_mfcc(fs, signal):
 
 
-    # signal = processing.preemphasis(signal, cof=0.98) 
+    signal = processing.preemphasis(signal, cof=0.98) 
 
     # Stacking frames 
     frames = processing.stack_frames(signal, sampling_frequency=fs,
@@ -134,9 +123,8 @@ def apply_mfcc(fs, signal):
     mel_matrix = np.concatenate((first_10_filterbanks, last22_filterbanks), axis=1)
     mel_matrix = np.transpose(mel_matrix)
     assert(len(mel_matrix) == 32)
-    print(len(mel_matrix[0]))
     assert(len(mel_matrix[0]) == len(power_spectrum[0]))
-
+    ipdb.set_trace()
     # # Compute spectrogram  and filterbank energies
     energy = np.sum(power_spectrum,1) # this stores the total energy in each frame
     energy = np.where(energy == 0,np.finfo(float).eps,energy) # if energy is zero, we get problems with log
@@ -243,9 +231,7 @@ def custom_filterbanks(nfilt=10,nfft=512,samplerate=44100,lowfreq=0,highfreq=Non
     bins = np.array([])
     for i in bankpointsnormal:
         bins = np.append(bins, np.floor((nfft + 1) * float(i)/samplerate))
-
     flbank = np.zeros((remn, len(bins)))
-
     for i in range(1,len(bins) - 1):
         for j in range(1,remn - 1):
             if j < bins[i-1]:
@@ -264,5 +250,8 @@ def mel(n):
 
 def meli(n):
     return 700 * (np.exp(float(n)/1125) - 1)
-
-main()
+direc='./Snoring_Dataset' # path to the dataset folder
+# assumes you have a processed data folder which contains 2 empty folders: '0' and '1'
+save_dir = "./processed_data" # where processed data goes; 
+main(direc, save_dir, method='mfcc',save_img=False)
+#main(direc, save_dir, method='fft',save_img=False)
