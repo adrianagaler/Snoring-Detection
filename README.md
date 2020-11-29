@@ -50,3 +50,11 @@ ear.
 
  ## Extensions 
  Pre-emphasis to amplify high frequencies, as described here: https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html
+
+# Deployment
+- train_snoring_model.ipynb has training script 
+- To edit training model script see 'Snoring-Detection/deployment/tensorflow1/tensorflow/examples/speech_commands'
+- rename snoring dataset directories to 'snoring' and 'no_snoring' 
+- change data pathways 
+- include "_background_noise_" directory from wake words dataset in dataset directory 
+- make sure to check all paths to make sure they are specific to your setup 
