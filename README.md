@@ -58,3 +58,4 @@ ear.
 - change data pathways 
 - include "\_background_noise\_" directory from wake words dataset in dataset directory 
 - make sure to check all paths to make sure they are specific to your setup 
+- the code in the train_snoring_model.ipynb file calls tensorflow1 (a copy of tensorflow). I only pushed the modified code in tensorflow1/tensorflow/examples/speech_commands. You will have to add in the other tensorflow folders to make the code run.  
