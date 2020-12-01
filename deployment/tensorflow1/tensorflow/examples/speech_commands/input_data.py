@@ -36,7 +36,7 @@ from tensorflow.python.ops import gen_audio_ops as audio_ops
 from tensorflow.python.ops import io_ops
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
-import ipdb,csv
+# import ipdb,csv
 tf.compat.v1.disable_eager_execution()
 
 # If it's available, load the specialized feature generator. If this doesn't
@@ -452,6 +452,7 @@ class AudioProcessor(object):
           window_size=model_settings['window_size_samples'],
           stride=model_settings['window_stride_samples'],
           magnitude_squared=True)
+      
       tf.compat.v1.summary.image(
           'spectrogram', tf.expand_dims(spectrogram, -1), max_outputs=1)
       # The number of buckets in each FFT row in the spectrogram will depend on

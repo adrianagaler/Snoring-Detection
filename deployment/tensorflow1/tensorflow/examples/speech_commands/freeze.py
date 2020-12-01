@@ -248,7 +248,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--sample_rate',
       type=int,
-      default=16000,
+      default=44100,
       help='Expected sample rate of the wavs',)
   parser.add_argument(
       '--clip_duration_ms',
@@ -268,7 +268,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--window_stride_ms',
       type=float,
-      default=10.0,
+      default=20.0,
       help='How long the stride is between spectrogram timeslices',)
   parser.add_argument(
       '--feature_bin_count',

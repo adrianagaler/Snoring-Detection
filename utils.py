@@ -1,7 +1,8 @@
 import numpy as np
 import csv
-import ipdb
 import os
+from IPython.core.debugger import Pdb
+ipdb = Pdb()
 
 
 def load_dataset(main_path = './',preprocess = 'dct'):
@@ -15,6 +16,8 @@ def load_dataset(main_path = './',preprocess = 'dct'):
         reader = csv.reader(file, delimiter = ',')
         for row in reader:
             train_y.append(int(row[0]))
+            print( " ******* " )
+            print('{}processed_data/{}/{}_{}{}.npy'.format(main_path,row[0],row[0],row[1],preprocess))
             train_x.append(np.load('{}processed_data/{}/{}_{}{}.npy'.format(main_path,row[0],row[0],row[1],preprocess)))
     with open(main_path+'processed_data/test.csv', 'r') as file:
         reader = csv.reader(file, delimiter = ',')

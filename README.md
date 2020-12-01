@@ -1,5 +1,12 @@
 # Data Preprocessing 
 
+## Get Data at sample rate = 16000
+- Data is already preprocessed in Snoring_Dataset_@16000
+- if you want to regenerate the data, run the downgrade_sample_rate.py on the Snoring Dataset folder (make sure to update the save_dir accordingly)
+- the script will convert the wav files in the Snoring Dataset (at sample_rate=44100Hz) to a reduced sample_rate = 16kHz 
+
+
+
 ## Run 
  - *pre-requisites:* install the software (see below)
  - run `python3 preprocessing.py` (make sure to update the names of the files and directories)
@@ -58,4 +65,6 @@ ear.
 - change data pathways 
 - include "\_background_noise\_" directory from wake words dataset in dataset directory 
 - make sure to check all paths to make sure they are specific to your setup 
-- the code in the train_snoring_model.ipynb file calls tensorflow1 (a copy of tensorflow). I only pushed the modified code in tensorflow1/tensorflow/examples/speech_commands. You will have to add in the other tensorflow folders to make the code run.  
+- the code in the train_snoring_model.ipynb file calls tensorflow1 (a copy of tensorflow). I only pushed the modified code in tensorflow1/tensorflow/examples/speech_commands. You will have to add in the other tensorflow folders to make the code run. 
+
+
