@@ -17,4 +17,3 @@ def main(directory, save_directory):
 directory = "/Users/ariadnarotaru/Desktop/249r/Snoring_Dataset"
 save_directory = "/Users/ariadnarotaru/Desktop/249r/Snoring_Dataset_@16000"
 main(directory, save_directory)
-
