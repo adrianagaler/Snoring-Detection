@@ -7,7 +7,6 @@ from PIL import Image as im
 import matplotlib.pyplot as plt
 import math 
 from scipy import fftpack
-import ipdb
 
 
 
@@ -124,7 +123,6 @@ def apply_mfcc(fs, signal):
     mel_matrix = np.transpose(mel_matrix)
     assert(len(mel_matrix) == 32)
     assert(len(mel_matrix[0]) == len(power_spectrum[0]))
-    ipdb.set_trace()
     # # Compute spectrogram  and filterbank energies
     energy = np.sum(power_spectrum,1) # this stores the total energy in each frame
     energy = np.where(energy == 0,np.finfo(float).eps,energy) # if energy is zero, we get problems with log
