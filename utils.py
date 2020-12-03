@@ -5,27 +5,27 @@ from IPython.core.debugger import Pdb
 ipdb = Pdb()
 
 
-def load_dataset(main_path = './',preprocess = 'dct'):
+def load_dataset(main_path = './',preprocess = 'mfcc'):
     train_y = []
     test_y = []
     val_y  = []
     train_x = []
     test_x = []
     val_x = []
-    with open(main_path+'processed_data/train.csv', 'r') as file:
+    with open(main_path+'processed_data/training.csv', 'r') as file:
         reader = csv.reader(file, delimiter = ',')
         for row in reader:
             train_y.append(int(row[0]))
             print( " ******* " )
             print('{}processed_data/{}/{}_{}{}.npy'.format(main_path,row[0],row[0],row[1],preprocess))
             train_x.append(np.load('{}processed_data/{}/{}_{}{}.npy'.format(main_path,row[0],row[0],row[1],preprocess)))
-    with open(main_path+'processed_data/test.csv', 'r') as file:
+    with open(main_path+'processed_data/testing.csv', 'r') as file:
         reader = csv.reader(file, delimiter = ',')
         for row in reader:
             test_y.append(int(row[0]))
             test_x.append(np.load('{}processed_data/{}/{}_{}{}.npy'.format(main_path,row[0],row[0],row[1],preprocess)))
     if os.path.exists(main_path+'processed_data/val.csv'):
-        with open(main_path+'processed_data/val.csv', 'r') as file:
+        with open(main_path+'processed_data/validation.csv', 'r') as file:
             reader = csv.reader(file, delimiter = ',')
             for row in reader:
                 val_y.append(int(row[0]))
