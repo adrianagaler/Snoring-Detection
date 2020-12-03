@@ -1,0 +1,5 @@
+- quantized accuracy: 86.1%
+- model size 10,704
+- Data: wavs at 16kHz
+- Model type: tiny_conv 
+- Preprocessing: micro

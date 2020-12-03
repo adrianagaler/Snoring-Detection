@@ -1,0 +1,5 @@
+- quantized accuracy: 84.3%
+- model size: 884,096
+- Data: wavs at 16kHz
+- Model type: low_latency_conv
+- Preprocessing: micro
