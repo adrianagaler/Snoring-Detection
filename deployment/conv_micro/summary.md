@@ -1,5 +1,5 @@
-- quantized accuracy: 60.2%
-- model size 4944 
+- quantized accuracy: 90.7%
+- model size 244,160
 - Data: wavs at 16kHz
-- Model type: single_fc 
+- Model type: conv
 - Preprocessing: micro
