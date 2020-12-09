@@ -11,12 +11,16 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-arc', type=str, default = 'single_fc')
 parser.add_argument('-preprocess', type=str, default = 'micro')
+parser.add_argument('-silence', type=float, default = 0)
+parser.add_argument('-bg_volumn', type=str, default = 0)
+
 args = parser.parse_args()
 
 PREPROCESS = args.preprocess # Other options 'micro', 'average', 'mfcc'
 MODEL_ARCHITECTURE = args.arc # Other options include: single_fc, conv, tiny_conv,
                       # low_latency_conv, low_latency_svdf, tiny_embedding_conv
-
+SILENCE = args.silence
+BACKGROUND = args.bg_volumn
 
 WANTED_WORDS = "snoring,no_snoring"
 
@@ -54,7 +58,7 @@ EVAL_STEP_INTERVAL = '25'
 SAVE_STEP_INTERVAL = '100'
 
 # Constants for training directories and filepaths
-DATASET_DIR = '/n/dtak/jyao/Snoring-Detection/Snoring_Dataset_@16000'
+DATASET_DIR = '/home/jiayu/Desktop/Snoring-Detection/Snoring_Dataset_@16000'
 LOGS_DIR = MODEL_ARCHITECTURE+'_logs/'
 TRAIN_DIR = MODEL_ARCHITECTURE+'_train/' # for training checkpoints and other files.
 import os
@@ -82,7 +86,7 @@ QUANT_INPUT_RANGE = QUANT_INPUT_MAX - QUANT_INPUT_MIN
 import tensorflow as tf
 
 
-os.system("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/train.py --data_dir={} --data_url='' --wanted_words={} --preprocess={} --window_stride={} --model_architecture={} --how_many_training_steps={} --learning_rate={} --train_dir={} --summaries_dir={} --verbosity={} --eval_step_interval={} --save_step_interval={} --dropout=0 --optimizer='momentum' --batch_size=1000".format(DATASET_DIR,WANTED_WORDS,PREPROCESS,WINDOW_STRIDE,MODEL_ARCHITECTURE,TRAINING_STEPS, LEARNING_RATE,TRAIN_DIR,LOGS_DIR,VERBOSITY,EVAL_STEP_INTERVAL,SAVE_STEP_INTERVAL))
+os.system("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/train.py --data_dir={} --data_url='' --wanted_words={} --preprocess={} --window_stride={} --model_architecture={} --how_many_training_steps={} --learning_rate={} --train_dir={} --summaries_dir={} --verbosity={} --eval_step_interval={} --save_step_interval={} --dropout=0 --optimizer='momentum' --batch_size=1000 --silence_percentage={} --background_volume={}".format(DATASET_DIR,WANTED_WORDS,PREPROCESS,WINDOW_STRIDE,MODEL_ARCHITECTURE,TRAINING_STEPS, LEARNING_RATE,TRAIN_DIR,LOGS_DIR,VERBOSITY,EVAL_STEP_INTERVAL,SAVE_STEP_INTERVAL,SILENCE,BACKGROUND))
 
 
 os.system('rm -rf {}'.format(SAVED_MODEL))

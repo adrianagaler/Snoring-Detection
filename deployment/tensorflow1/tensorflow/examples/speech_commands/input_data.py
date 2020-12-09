@@ -36,7 +36,7 @@ from tensorflow.python.ops import gen_audio_ops as audio_ops
 from tensorflow.python.ops import io_ops
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
-# import ipdb,csv
+import ipdb,csv
 tf.compat.v1.disable_eager_execution()
 
 # If it's available, load the specialized feature generator. If this doesn't
@@ -47,8 +47,8 @@ except ImportError:
   frontend_op = None
 
 MAX_NUM_WAVS_PER_CLASS = 2**27 - 1  # ~134M
-#SILENCE_LABEL = '_silence_'
-#SILENCE_INDEX = 0
+SILENCE_LABEL = '_silence_'
+SILENCE_INDEX = 2
 #UNKNOWN_WORD_LABEL = '_unknown_'
 #UNKNOWN_WORD_INDEX = 1
 BACKGROUND_NOISE_DIR_NAME = '_background_noise_'
@@ -65,7 +65,7 @@ def prepare_words_list(wanted_words):
     List with the standard silence and unknown tokens added.
   """
   #return [SILENCE_LABEL, UNKNOWN_WORD_LABEL] + wanted_words
-  #return [SILENCE_LABEL] + wanted_words
+  return [SILENCE_LABEL] + wanted_words
   return wanted_words
 
 def which_set(filename, validation_percentage, testing_percentage):
@@ -191,13 +191,13 @@ def get_features_range(model_settings):
 class AudioProcessor(object):
   """Handles loading, partitioning, and preparing audio training data."""
 
-  def __init__(self, data_url, data_dir, #silence_percentage, unknown_percentage,
+  def __init__(self, data_url, data_dir, silence_percentage, #unknown_percentage,
                wanted_words, validation_percentage, testing_percentage,
                model_settings, summaries_dir):
     if data_dir:
       self.data_dir = data_dir
       self.maybe_download_and_extract_dataset(data_url, data_dir)
-      self.prepare_data_index(#silence_percentage, #unknown_percentage,
+      self.prepare_data_index(silence_percentage, #unknown_percentage,
                               wanted_words, validation_percentage,
                               testing_percentage)
       self.prepare_background_data()
@@ -245,7 +245,7 @@ class AudioProcessor(object):
               filename, statinfo.st_size))
       tarfile.open(filepath, 'r:gz').extractall(dest_directory)
 
-  def prepare_data_index(self, #silence_percentage, #unknown_percentage,
+  def prepare_data_index(self, silence_percentage, #unknown_percentage,
                          wanted_words, validation_percentage,
                          testing_percentage):
     """Prepares a list of the samples organized by set and label.
@@ -306,7 +306,7 @@ class AudioProcessor(object):
                         ', '.join(all_words.keys()))
     # We need an arbitrary file to load as the input for the silence samples.
     # It's multiplied by zero later, so the content doesn't matter.
-    #silence_wav_path = self.data_index['training'][0]['file']
+    silence_wav_path = self.data_index['training'][0]['file']
     '''
     for k in ['training','validation','testing']:
         c1 = 0
@@ -340,7 +340,16 @@ class AudioProcessor(object):
     # Make sure the ordering is random.
     for set_index in ['validation', 'testing', 'training']:
       random.shuffle(self.data_index[set_index])
+      set_size = len(self.data_index[set_index])
+      silence_size = int(math.ceil(set_size * silence_percentage / 100))
+      for _ in range(silence_size):
+        self.data_index[set_index].append({
+          'label': SILENCE_LABEL,
+          'file': silence_wav_path
+        })
     # Prepare the rest of the result data structure.
+    for set_index in ['validation', 'testing', 'training']:
+      random.shuffle(self.data_index[set_index])
     self.words_list = prepare_words_list(wanted_words)
     self.word_to_index = {}
     for word in all_words:
@@ -349,8 +358,7 @@ class AudioProcessor(object):
       else:
         raise ValueError('no unknown')
         #self.word_to_index[word] = UNKNOWN_WORD_INDEX
-    #self.word_to_index[SILENCE_LABEL] = SILENCE_INDEX
-
+    self.word_to_index[SILENCE_LABEL] = SILENCE_INDEX
   def prepare_background_data(self):
     """Searches a folder for background noise audio, and loads it into memory.
 
@@ -500,6 +508,7 @@ class AudioProcessor(object):
             num_channels=model_settings['fingerprint_width'],
             out_scale=1,
             out_type=tf.float32)
+
         self.output_ = tf.multiply(micro_frontend, (10.0 / 256.0))
         tf.compat.v1.summary.image(
             'micro',

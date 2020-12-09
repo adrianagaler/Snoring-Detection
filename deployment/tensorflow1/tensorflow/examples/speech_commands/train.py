@@ -81,7 +81,7 @@ import tensorflow as tf
 import input_data
 import models
 from tensorflow.python.platform import gfile
-
+import ipdb
 FLAGS = None
 
 
@@ -101,7 +101,7 @@ def main(_):
       FLAGS.sample_rate, FLAGS.clip_duration_ms, FLAGS.window_size_ms,
       FLAGS.window_stride_ms, FLAGS.feature_bin_count, FLAGS.preprocess)
   audio_processor = input_data.AudioProcessor(
-      FLAGS.data_url, FLAGS.data_dir, #FLAGS.silence_percentage, #FLAGS.unknown_percentage,
+      FLAGS.data_url, FLAGS.data_dir, FLAGS.silence_percentage, #FLAGS.unknown_percentage,
       FLAGS.wanted_words.split(','), FLAGS.validation_percentage,
       FLAGS.testing_percentage, model_settings, FLAGS.summaries_dir)
   fingerprint_size = model_settings['fingerprint_size']
@@ -137,7 +137,6 @@ def main(_):
       model_settings,
       FLAGS.model_architecture,
       is_training=True)
-
   # Define loss and optimizer
   ground_truth_input = tf.compat.v1.placeholder(
       tf.int64, [None], name='groundtruth_input')
@@ -235,6 +234,7 @@ def main(_):
     train_fingerprints, train_ground_truth = audio_processor.get_data(
         FLAGS.batch_size, 0, model_settings, FLAGS.background_frequency,
         FLAGS.background_volume, time_shift_samples, 'training', sess)
+    print (train_fingerprints.shape)
     # Run the graph with this batch of training data.
     train_summary, train_accuracy, cross_entropy_value, _, _ = sess.run(
         [
@@ -268,8 +268,8 @@ def main(_):
         validation_fingerprints, validation_ground_truth = (
             audio_processor.get_data(FLAGS.batch_size, i, model_settings, 0.0,
                                      0.0, 0, 'validation', sess))
-        # Run a validation step and capture training summaries for TensorBoard
-        # with the `merged` op.
+    # Run a validation step and capture training summaries for TensorBoard
+    # with the `merged` op.
         validation_summary, validation_accuracy, conf_matrix = sess.run(
             [merged_summaries, evaluation_step, confusion_matrix],
             feed_dict={
@@ -289,13 +289,13 @@ def main(_):
                                 (training_step, total_accuracy * 100, set_size))
 
     # Save the model checkpoint periodically.
-    if (training_step % FLAGS.save_step_interval == 0 or
-        training_step == training_steps_max):
-      checkpoint_path = os.path.join(FLAGS.train_dir,
-                                     FLAGS.model_architecture + '.ckpt')
-      tf.compat.v1.logging.info('Saving to "%s-%d"', checkpoint_path,
-                                training_step)
-      saver.save(sess, checkpoint_path, global_step=training_step)
+  if (training_step % FLAGS.save_step_interval == 0 or
+      training_step == training_steps_max):
+    checkpoint_path = os.path.join(FLAGS.train_dir,
+                                 FLAGS.model_architecture + '.ckpt')
+    tf.compat.v1.logging.info('Saving to "%s-%d"', checkpoint_path,
+                            training_step)
+    saver.save(sess, checkpoint_path, global_step=training_step)
 
   set_size = audio_processor.set_size('testing')
   tf.compat.v1.logging.info('set_size=%d', set_size)
@@ -352,7 +352,7 @@ if __name__ == '__main__':
       help="""\
       How many of the training samples have background noise mixed in.
       """)
-  '''
+
   parser.add_argument(
       '--silence_percentage',
       type=float,
@@ -360,6 +360,7 @@ if __name__ == '__main__':
       help="""\
       How much of the training data should be silence.
       """)
+  '''
   parser.add_argument(
       '--unknown_percentage',
       type=float,
