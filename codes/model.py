@@ -25,8 +25,8 @@ WANTED_WORDS = "snoring,no_snoring"
 # TRAINING_STEPS=12000,3000 and LEARNING_RATE=0.001,0.0001
 # will run 12,000 training loops in total, with a rate of 0.001 for the first
 # 8,000, and 0.0001 for the final 3,000.
-TRAINING_STEPS = "10,10"
-LEARNING_RATE = "0.005,0.005"
+TRAINING_STEPS = "5000,5000"
+LEARNING_RATE = "0.001,0.001"
 
 # Calculate the total number of steps, which is used to identify the checkpoint
 # file name.
@@ -54,7 +54,7 @@ EVAL_STEP_INTERVAL = '5'
 SAVE_STEP_INTERVAL = '25'
 
 # Constants for training directories and filepaths
-DATASET_DIR = '/home/jiayu/Desktop/Snoring-Detection/Snoring_Dataset_@16000'
+DATASET_DIR = '/n/dtak/jyao/Snoring-Detection/Snoring_Dataset_@16000'
 LOGS_DIR = MODEL_ARCHITECTURE+'_logs/'
 TRAIN_DIR = MODEL_ARCHITECTURE+'_train/' # for training checkpoints and other files.
 import os
