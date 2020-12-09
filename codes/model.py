@@ -25,7 +25,7 @@ WANTED_WORDS = "snoring,no_snoring"
 # TRAINING_STEPS=12000,3000 and LEARNING_RATE=0.001,0.0001
 # will run 12,000 training loops in total, with a rate of 0.001 for the first
 # 8,000, and 0.0001 for the final 3,000.
-TRAINING_STEPS = "5000,5000"
+TRAINING_STEPS = "2500,2500"
 LEARNING_RATE = "0.001,0.001"
 
 # Calculate the total number of steps, which is used to identify the checkpoint
@@ -50,14 +50,15 @@ WINDOW_STRIDE = 20
 
 # Constants used during training only
 VERBOSITY = 'DEBUG' # WARN, DEBUG
-EVAL_STEP_INTERVAL = '5'
-SAVE_STEP_INTERVAL = '25'
+EVAL_STEP_INTERVAL = '25'
+SAVE_STEP_INTERVAL = '100'
 
 # Constants for training directories and filepaths
 DATASET_DIR = '/n/dtak/jyao/Snoring-Detection/Snoring_Dataset_@16000'
 LOGS_DIR = MODEL_ARCHITECTURE+'_logs/'
 TRAIN_DIR = MODEL_ARCHITECTURE+'_train/' # for training checkpoints and other files.
 import os
+os.system('rm -rf {} {}'.format(LOGS_DIR,TRAIN_DIR))
 if not os.path.exists(LOGS_DIR):
     os.mkdir(LOGS_DIR)
 if not os.path.exists(TRAIN_DIR):
@@ -79,14 +80,13 @@ QUANT_INPUT_RANGE = QUANT_INPUT_MAX - QUANT_INPUT_MIN
 
 
 import tensorflow as tf
-#os.system('rm -rf {} {}'.format(LOGS_DIR,TRAIN_DIR))
+
 
 
 os.system("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/train.py --data_dir={} --data_url='' --wanted_words={} --preprocess={} --window_stride={} --model_architecture={} --how_many_training_steps={} --learning_rate={} --train_dir={} --summaries_dir={} --verbosity={} --eval_step_interval={} --save_step_interval={} --dropout=0 --optimizer='momentum'".format(DATASET_DIR,WANTED_WORDS,PREPROCESS,WINDOW_STRIDE,MODEL_ARCHITECTURE,TRAINING_STEPS, LEARNING_RATE,TRAIN_DIR,LOGS_DIR,VERBOSITY,EVAL_STEP_INTERVAL,SAVE_STEP_INTERVAL))
 
 
-
-#!rm -rf {SAVED_MODEL}
+os.system('rm -rf {}'.format(SAVED_MODEL))
 os.system("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/freeze.py --wanted_words={} --window_stride_ms={} --preprocess={} --model_architecture={} --start_checkpoint={}{}.ckpt-{} --save_format=saved_model --output_file={}".format(WANTED_WORDS,WINDOW_STRIDE,PREPROCESS,MODEL_ARCHITECTURE,TRAIN_DIR,MODEL_ARCHITECTURE,TOTAL_STEPS,SAVED_MODEL))
 
 
