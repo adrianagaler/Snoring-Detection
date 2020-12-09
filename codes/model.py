@@ -82,8 +82,7 @@ QUANT_INPUT_RANGE = QUANT_INPUT_MAX - QUANT_INPUT_MIN
 import tensorflow as tf
 
 
-
-os.system("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/train.py --data_dir={} --data_url='' --wanted_words={} --preprocess={} --window_stride={} --model_architecture={} --how_many_training_steps={} --learning_rate={} --train_dir={} --summaries_dir={} --verbosity={} --eval_step_interval={} --save_step_interval={} --dropout=0 --optimizer='momentum'".format(DATASET_DIR,WANTED_WORDS,PREPROCESS,WINDOW_STRIDE,MODEL_ARCHITECTURE,TRAINING_STEPS, LEARNING_RATE,TRAIN_DIR,LOGS_DIR,VERBOSITY,EVAL_STEP_INTERVAL,SAVE_STEP_INTERVAL))
+os.system("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/train.py --data_dir={} --data_url='' --wanted_words={} --preprocess={} --window_stride={} --model_architecture={} --how_many_training_steps={} --learning_rate={} --train_dir={} --summaries_dir={} --verbosity={} --eval_step_interval={} --save_step_interval={} --dropout=0 --optimizer='momentum' --batch_size=1000".format(DATASET_DIR,WANTED_WORDS,PREPROCESS,WINDOW_STRIDE,MODEL_ARCHITECTURE,TRAINING_STEPS, LEARNING_RATE,TRAIN_DIR,LOGS_DIR,VERBOSITY,EVAL_STEP_INTERVAL,SAVE_STEP_INTERVAL))
 
 
 os.system('rm -rf {}'.format(SAVED_MODEL))
