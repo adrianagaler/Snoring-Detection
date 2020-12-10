@@ -293,6 +293,7 @@ class AudioProcessor(object):
       # If it's a known class, store its detail, otherwise add it to the list
       # we'll use to train the unknown label.
       if word in wanted_words_index:
+
         self.data_index[set_index].append({'label': word, 'file': wav_path})
       else:
         raise ValueError('no unknowns')
@@ -602,7 +603,7 @@ class AudioProcessor(object):
           self.time_shift_offset_placeholder_: time_shift_offset,
       }
       # Choose a section of background noise to mix in.
-      if use_background: #or sample['label'] == SILENCE_LABEL:
+      if use_background or sample['label'] == SILENCE_LABEL:
         background_index = np.random.randint(len(self.background_data))
         background_samples = self.background_data[background_index]
         if len(background_samples) <= model_settings['desired_samples']:
@@ -615,8 +616,8 @@ class AudioProcessor(object):
         background_clipped = background_samples[background_offset:(
             background_offset + desired_samples)]
         background_reshaped = background_clipped.reshape([desired_samples, 1])
-        #if sample['label'] == SILENCE_LABEL:
-        #  background_volume = np.random.uniform(0, 1)
+        if sample['label'] == SILENCE_LABEL:
+          background_volume = np.random.uniform(0, 1)
         if np.random.uniform(0, 1) < background_frequency:
           background_volume = np.random.uniform(0, background_volume_range)
         else:
@@ -627,10 +628,10 @@ class AudioProcessor(object):
       input_dict[self.background_data_placeholder_] = background_reshaped
       input_dict[self.background_volume_placeholder_] = background_volume
       # If we want silence, mute out the main sample but leave the background.
-      #if sample['label'] == SILENCE_LABEL:
-      #  input_dict[self.foreground_volume_placeholder_] = 0
-      #else:
-      input_dict[self.foreground_volume_placeholder_] = 1
+      if sample['label'] == SILENCE_LABEL:
+        input_dict[self.foreground_volume_placeholder_] = 0
+      else:
+        input_dict[self.foreground_volume_placeholder_] = 1
 
       # Run the graph to produce the output audio.
       summary, data_tensor = sess.run(
@@ -706,10 +707,10 @@ class AudioProcessor(object):
           sample_index = np.random.randint(len(candidates))
         sample = candidates[sample_index]
         input_dict = {wav_filename_placeholder: sample['file']}
-        #if sample['label'] == SILENCE_LABEL:
-        #  input_dict[foreground_volume_placeholder] = 0
-        #else:
-        input_dict[foreground_volume_placeholder] = 1
+        if sample['label'] == SILENCE_LABEL:
+          input_dict[foreground_volume_placeholder] = 0
+        else:
+          input_dict[foreground_volume_placeholder] = 1
         data[i, :] = sess.run(scaled_foreground, feed_dict=input_dict).flatten()
         label_index = self.word_to_index[sample['label']]
         labels.append(words_list[label_index])
