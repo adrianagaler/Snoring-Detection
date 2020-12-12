@@ -1,0 +1,30 @@
+Title: Snoring Dataset 
+
+Created by Tareq Khan [Email: tareq.khan@emich.edu]
+
+Dataset Sources
+=============
+The snoring sounds were collected from different online sources as below:
+https://www.soundsnap.com/tags/snoring (accessed on 6 August 2019).
+https://www.zapsplat.com/sound-effect-category/breathing-and-snoring (accessed on 6 August 2019).
+https://www.fesliyanstudios.com/royalty-free-sound-effects-download/people-snoring-189 (accessed on 6 August 2019).
+https://www.youtube.com/watch?v=1deTKPX1j8c (accessed on 6 August 2019).
+https://www.youtube.com/watch?v=SOxwffK0xUc (accessed on 6 August 2019).
+
+
+Description of the Snoring Dataset
+============================
+
+The dataset contains two folders - one for snoring and the other for non-snoring. 
+
+Folder 1 contains snoring sounds. It has total 500 sounds. Each sound is 1 second in duration.
+Among the 500 snoring samples, 363 samples consist of snoring sounds of children, adult men and adult women without any background sound. The remaining 137 samples consist of snoring sounds having a background of non-snoring sounds. 
+
+
+Folder 0 contains non-snoring sounds. It has total 500 sounds. Each sound is 1 second in duration.
+The 500 non-snoring samples consist of background sounds that might be available near the snorer. Ten categories of non-snoring sounds are collected, and each category has 50 samples. The ten categories are baby crying, the clock ticking, the door opened and closed, total silence and the minor sound of the vibration motor of the gadget, toilet flashing, siren of emergency vehicle, rain and thunderstorm, streetcar sounds, people talking, and background television news.
+
+Citation
+=======
+If you use the dataset, then please cite the following work:
+T. H. Khan, "A deep learning model for snoring detection and vibration notification using a smart wearable gadget," Electronics, vol. 8, no. 9, article. 987, ISSN 2079-9292, 2019.
