@@ -13,7 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 """Model definitions for simple speech recognition.
-
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -26,10 +25,8 @@ import tensorflow as tf
 
 def _next_power_of_two(x):
   """Calculates the smallest enclosing power of two for an input.
-
   Args:
     x: Positive float or integer number.
-
   Returns:
     Next largest power of two integer.
   """
@@ -40,7 +37,6 @@ def prepare_model_settings(label_count, sample_rate, clip_duration_ms,
                            window_size_ms, window_stride_ms, feature_bin_count,
                            preprocess):
   """Calculates common settings needed for all models.
-
   Args:
     label_count: How many classes are to be recognized.
     sample_rate: Number of audio samples per second.
@@ -49,10 +45,8 @@ def prepare_model_settings(label_count, sample_rate, clip_duration_ms,
     window_stride_ms: How far to move in time between frequency windows.
     feature_bin_count: Number of frequency bins to use for analysis.
     preprocess: How the spectrogram is processed to produce features.
-
   Returns:
     Dictionary containing common settings.
-
   Raises:
     ValueError: If the preprocessing mode isn't recognized.
   """
@@ -95,7 +89,6 @@ def prepare_model_settings(label_count, sample_rate, clip_duration_ms,
 def create_model(fingerprint_input, model_settings, model_architecture,
                  is_training, runtime_settings=None):
   """Builds a model of the requested architecture compatible with the settings.
-
   There are many possible ways of deriving predictions from a spectrogram
   input, so this function provides an abstract interface for creating different
   kinds of models in a black-box way. You need to pass in a TensorFlow node as
@@ -103,26 +96,21 @@ def create_model(fingerprint_input, model_settings, model_architecture,
   describe the audio. Typically this will be derived from a spectrogram that's
   been run through an MFCC, but in theory it can be any feature vector of the
   size specified in model_settings['fingerprint_size'].
-
   The function will build the graph it needs in the current TensorFlow graph,
   and return the tensorflow output that will contain the 'logits' input to the
   softmax prediction process. If training flag is on, it will also return a
   placeholder node that can be used to control the dropout amount.
-
   See the implementations below for the possible model architectures that can be
   requested.
-
   Args:
     fingerprint_input: TensorFlow node that will output audio feature vectors.
     model_settings: Dictionary of information about the model.
     model_architecture: String specifying which kind of model to create.
     is_training: Whether the model is going to be used for training.
     runtime_settings: Dictionary of information about the runtime.
-
   Returns:
     TensorFlow node outputting logits results, and optionally a dropout
     placeholder.
-
   Raises:
     Exception: If the architecture type isn't recognized.
   """
@@ -152,7 +140,6 @@ def create_model(fingerprint_input, model_settings, model_architecture,
 
 def load_variables_from_checkpoint(sess, start_checkpoint):
   """Utility function to centralize checkpoint restoration.
-
   Args:
     sess: TensorFlow session.
     start_checkpoint: Path to saved checkpoint on disk.
@@ -163,25 +150,20 @@ def load_variables_from_checkpoint(sess, start_checkpoint):
 
 def create_single_fc_model(fingerprint_input, model_settings, is_training):
   """Builds a model with a single hidden fully-connected layer.
-
   This is a very simple model with just one matmul and bias layer. As you'd
   expect, it doesn't produce very accurate results, but it is very fast and
   simple, so it's useful for sanity testing.
-
   Here's the layout of the graph:
-
   (fingerprint_input)
           v
       [MatMul]<-(weights)
           v
       [BiasAdd]<-(bias)
           v
-
   Args:
     fingerprint_input: TensorFlow node that will output audio feature vectors.
     model_settings: Dictionary of information about the model.
     is_training: Whether the model is going to be used for training.
-
   Returns:
     TensorFlow node outputting logits results, and optionally a dropout
     placeholder.
@@ -206,13 +188,10 @@ def create_single_fc_model(fingerprint_input, model_settings, is_training):
 
 def create_conv_model(fingerprint_input, model_settings, is_training):
   """Builds a standard convolutional model.
-
   This is roughly the network labeled as 'cnn-trad-fpool3' in the
   'Convolutional Neural Networks for Small-footprint Keyword Spotting' paper:
   http://www.isca-speech.org/archive/interspeech_2015/papers/i15_1478.pdf
-
   Here's the layout of the graph:
-
   (fingerprint_input)
           v
       [Conv2D]<-(weights)
@@ -235,19 +214,15 @@ def create_conv_model(fingerprint_input, model_settings, is_training):
           v
       [BiasAdd]<-(bias)
           v
-
   This produces fairly good quality results, but can involve a large number of
   weight parameters and computations. For a cheaper alternative from the same
   paper with slightly less accuracy, see 'low_latency_conv' below.
-
   During training, dropout nodes are introduced after each relu, controlled by a
   placeholder.
-
   Args:
     fingerprint_input: TensorFlow node that will output audio feature vectors.
     model_settings: Dictionary of information about the model.
     is_training: Whether the model is going to be used for training.
-
   Returns:
     TensorFlow node outputting logits results, and optionally a dropout
     placeholder.
@@ -333,13 +308,10 @@ def create_conv_model(fingerprint_input, model_settings, is_training):
 def create_low_latency_conv_model(fingerprint_input, model_settings,
                                   is_training):
   """Builds a convolutional model with low compute requirements.
-
   This is roughly the network labeled as 'cnn-one-fstride4' in the
   'Convolutional Neural Networks for Small-footprint Keyword Spotting' paper:
   http://www.isca-speech.org/archive/interspeech_2015/papers/i15_1478.pdf
-
   Here's the layout of the graph:
-
   (fingerprint_input)
           v
       [Conv2D]<-(weights)
@@ -360,18 +332,14 @@ def create_low_latency_conv_model(fingerprint_input, model_settings,
           v
       [BiasAdd]<-(bias)
           v
-
   This produces slightly lower quality results than the 'conv' model, but needs
   fewer weight parameters and computations.
-
   During training, dropout nodes are introduced after the relu, controlled by a
   placeholder.
-
   Args:
     fingerprint_input: TensorFlow node that will output audio feature vectors.
     model_settings: Dictionary of information about the model.
     is_training: Whether the model is going to be used for training.
-
   Returns:
     TensorFlow node outputting logits results, and optionally a dropout
     placeholder.
@@ -462,13 +430,10 @@ def create_low_latency_conv_model(fingerprint_input, model_settings,
 def create_low_latency_svdf_model(fingerprint_input, model_settings,
                                   is_training, runtime_settings):
   """Builds an SVDF model with low compute requirements.
-
   This is based in the topology presented in the 'Compressing Deep Neural
   Networks using a Rank-Constrained Topology' paper:
   https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43813.pdf
-
   Here's the layout of the graph:
-
   (fingerprint_input)
           v
         [SVDF]<-(weights)
@@ -489,13 +454,10 @@ def create_low_latency_svdf_model(fingerprint_input, model_settings,
           v
       [BiasAdd]<-(bias)
           v
-
   This model produces lower recognition accuracy than the 'conv' model above,
   but requires fewer weight parameters and, significantly fewer computations.
-
   During training, dropout nodes are introduced after the relu, controlled by a
   placeholder.
-
   Args:
     fingerprint_input: TensorFlow node that will output audio feature vectors.
     The node is expected to produce a 2D Tensor of shape:
@@ -506,11 +468,9 @@ def create_low_latency_svdf_model(fingerprint_input, model_settings,
     model_settings: Dictionary of information about the model.
     is_training: Whether the model is going to be used for training.
     runtime_settings: Dictionary of information about the runtime.
-
   Returns:
     TensorFlow node outputting logits results, and optionally a dropout
     placeholder.
-
   Raises:
       ValueError: If the inputs tensor is incorrectly shaped.
   """
@@ -672,13 +632,10 @@ def create_low_latency_svdf_model(fingerprint_input, model_settings,
 
 def create_tiny_conv_model(fingerprint_input, model_settings, is_training):
   """Builds a convolutional model aimed at microcontrollers.
-
   Devices like DSPs and microcontrollers can have very small amounts of
   memory and limited processing power. This model is designed to use less
   than 20KB of working RAM, and fit within 32KB of read-only (flash) memory.
-
   Here's the layout of the graph:
-
   (fingerprint_input)
           v
       [Conv2D]<-(weights)
@@ -691,20 +648,16 @@ def create_tiny_conv_model(fingerprint_input, model_settings, is_training):
           v
       [BiasAdd]<-(bias)
           v
-
   This doesn't produce particularly accurate results, but it's designed to be
   used as the first stage of a pipeline, running on a low-energy piece of
   hardware that can always be on, and then wake higher-power chips when a
   possible utterance has been found, so that more accurate analysis can be done.
-
   During training, a dropout node is introduced after the relu, controlled by a
   placeholder.
-
   Args:
     fingerprint_input: TensorFlow node that will output audio feature vectors.
     model_settings: Dictionary of information about the model.
     is_training: Whether the model is going to be used for training.
-
   Returns:
     TensorFlow node outputting logits results, and optionally a dropout
     placeholder.
@@ -765,13 +718,10 @@ def create_tiny_conv_model(fingerprint_input, model_settings, is_training):
 def create_tiny_embedding_conv_model(fingerprint_input, model_settings,
                                      is_training):
   """Builds a convolutional model aimed at microcontrollers.
-
   Devices like DSPs and microcontrollers can have very small amounts of
   memory and limited processing power. This model is designed to use less
   than 20KB of working RAM, and fit within 32KB of read-only (flash) memory.
-
   Here's the layout of the graph:
-
   (fingerprint_input)
           v
       [Conv2D]<-(weights)
@@ -796,20 +746,16 @@ def create_tiny_embedding_conv_model(fingerprint_input, model_settings,
           v
       [BiasAdd]<-(bias)
           v
-
   This doesn't produce particularly accurate results, but it's designed to be
   used as the first stage of a pipeline, running on a low-energy piece of
   hardware that can always be on, and then wake higher-power chips when a
   possible utterance has been found, so that more accurate analysis can be done.
-
   During training, a dropout node is introduced after the relu, controlled by a
   placeholder.
-
   Args:
     fingerprint_input: TensorFlow node that will output audio feature vectors.
     model_settings: Dictionary of information about the model.
     is_training: Whether the model is going to be used for training.
-
   Returns:
     TensorFlow node outputting logits results, and optionally a dropout
     placeholder.
@@ -895,3 +841,4 @@ def create_tiny_embedding_conv_model(fingerprint_input, model_settings,
     return final_fc, dropout_rate
   else:
     return final_fc
+    

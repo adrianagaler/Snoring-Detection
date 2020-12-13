@@ -13,38 +13,30 @@
 # limitations under the License.
 # ==============================================================================
 r"""Simple speech recognition to spot a limited number of keywords.
-
 This is a self-contained example script that will train a very basic audio
 recognition model in TensorFlow. It downloads the necessary training data and
 runs with reasonable defaults to train within a few hours even only using a CPU.
 For more information, please see
 https://www.tensorflow.org/tutorials/audio_recognition.
-
 It is intended as an introduction to using neural networks for audio
 recognition, and is not a full speech recognition system. For more advanced
 speech systems, I recommend looking into Kaldi. This network uses a keyword
 detection style to spot discrete words from a small vocabulary, consisting of
 "yes", "no", "up", "down", "left", "right", "on", "off", "stop", and "go".
-
 To run the training process, use:
-
 bazel run tensorflow/examples/speech_commands:train
-
 This will write out checkpoints to /tmp/speech_commands_train/, and will
 download over 1GB of open source training data, so you'll need enough free space
 and a good internet connection. The default data is a collection of thousands of
 one-second .wav files, each containing one spoken word. This data set is
 collected from https://aiyprojects.withgoogle.com/open_speech_recording, please
 consider contributing to help improve this and other models!
-
 As training progresses, it will print out its accuracy metrics, which should
 rise above 90% by the end. Once it's complete, you can run the freeze script to
 get a binary GraphDef that you can easily deploy on mobile applications.
-
 If you want to train on your own data, you'll need to create .wavs with your
 recordings, all at a consistent length, and then arrange them into subfolders
 organized by label. For example, here's a possible file structure:
-
 my_wavs >
   up >
     audio_0.wav
@@ -55,16 +47,12 @@ my_wavs >
   other>
     audio_4.wav
     audio_5.wav
-
 You'll also need to tell the script what labels to look for, using the
 `--wanted_words` argument. In this case, 'up,down' might be what you want, and
 the audio in the 'other' folder would be used to train an 'unknown' category.
-
 To pull this all together, you'd run:
-
 bazel run tensorflow/examples/speech_commands:train -- \
 --data_dir=my_wavs --wanted_words=up,down
-
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -81,7 +69,7 @@ import tensorflow as tf
 import input_data
 import models
 from tensorflow.python.platform import gfile
-import ipdb
+
 FLAGS = None
 
 
@@ -95,13 +83,13 @@ def main(_):
   # Begin by making sure we have the training data we need. If you already have
   # training data of your own, use `--data_url= ` on the command line to avoid
   # downloading.
-  print('preprocess', FLAGS.preprocess)
   model_settings = models.prepare_model_settings(
       len(input_data.prepare_words_list(FLAGS.wanted_words.split(','))),
       FLAGS.sample_rate, FLAGS.clip_duration_ms, FLAGS.window_size_ms,
       FLAGS.window_stride_ms, FLAGS.feature_bin_count, FLAGS.preprocess)
   audio_processor = input_data.AudioProcessor(
-      FLAGS.data_url, FLAGS.data_dir, FLAGS.silence_percentage, #FLAGS.unknown_percentage,
+      FLAGS.data_url, FLAGS.data_dir,
+      FLAGS.silence_percentage, FLAGS.unknown_percentage,
       FLAGS.wanted_words.split(','), FLAGS.validation_percentage,
       FLAGS.testing_percentage, model_settings, FLAGS.summaries_dir)
   fingerprint_size = model_settings['fingerprint_size']
@@ -137,6 +125,7 @@ def main(_):
       model_settings,
       FLAGS.model_architecture,
       is_training=True)
+
   # Define loss and optimizer
   ground_truth_input = tf.compat.v1.placeholder(
       tf.int64, [None], name='groundtruth_input')
@@ -247,7 +236,7 @@ def main(_):
             fingerprint_input: train_fingerprints,
             ground_truth_input: train_ground_truth,
             learning_rate_input: learning_rate_value,
-            dropout_rate: FLAGS.dropout,
+            dropout_rate: 0.5
         })
     train_writer.add_summary(train_summary, training_step)
     tf.compat.v1.logging.debug(
@@ -267,8 +256,8 @@ def main(_):
         validation_fingerprints, validation_ground_truth = (
             audio_processor.get_data(FLAGS.batch_size, i, model_settings, 0.0,
                                      0.0, 0, 'validation', sess))
-    # Run a validation step and capture training summaries for TensorBoard
-    # with the `merged` op.
+        # Run a validation step and capture training summaries for TensorBoard
+        # with the `merged` op.
         validation_summary, validation_accuracy, conf_matrix = sess.run(
             [merged_summaries, evaluation_step, confusion_matrix],
             feed_dict={
@@ -288,13 +277,13 @@ def main(_):
                                 (training_step, total_accuracy * 100, set_size))
 
     # Save the model checkpoint periodically.
-  if (training_step % FLAGS.save_step_interval == 0 or
-      training_step == training_steps_max):
-    checkpoint_path = os.path.join(FLAGS.train_dir,
-                                 FLAGS.model_architecture + '.ckpt')
-    tf.compat.v1.logging.info('Saving to "%s-%d"', checkpoint_path,
-                            training_step)
-    saver.save(sess, checkpoint_path, global_step=training_step)
+    if (training_step % FLAGS.save_step_interval == 0 or
+        training_step == training_steps_max):
+      checkpoint_path = os.path.join(FLAGS.train_dir,
+                                     FLAGS.model_architecture + '.ckpt')
+      tf.compat.v1.logging.info('Saving to "%s-%d"', checkpoint_path,
+                                training_step)
+      saver.save(sess, checkpoint_path, global_step=training_step)
 
   set_size = audio_processor.set_size('testing')
   tf.compat.v1.logging.info('set_size=%d', set_size)
@@ -340,18 +329,17 @@ if __name__ == '__main__':
   parser.add_argument(
       '--background_volume',
       type=float,
-      default=0,
+      default=0.1,
       help="""\
       How loud the background noise should be, between 0 and 1.
       """)
   parser.add_argument(
       '--background_frequency',
       type=float,
-      default=0,
+      default=0.8,
       help="""\
       How many of the training samples have background noise mixed in.
       """)
-
   parser.add_argument(
       '--silence_percentage',
       type=float,
@@ -359,7 +347,6 @@ if __name__ == '__main__':
       help="""\
       How much of the training data should be silence.
       """)
-  '''
   parser.add_argument(
       '--unknown_percentage',
       type=float,
@@ -367,7 +354,6 @@ if __name__ == '__main__':
       help="""\
       How much of the training data should be unknown words.
       """)
-  '''
   parser.add_argument(
       '--time_shift_ms',
       type=float,
@@ -403,7 +389,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--window_stride_ms',
       type=float,
-      default=20.0,
+      default=10.0,
       help='How far to move in time between spectrogram timeslices.',
   )
   parser.add_argument(
@@ -475,18 +461,12 @@ if __name__ == '__main__':
   parser.add_argument(
       '--preprocess',
       type=str,
-      default='micro',
+      default='mfcc',
       help='Spectrogram processing mode. Can be "mfcc", "average", or "micro"')
-  parser.add_argument(
-      '--dropout',
-      type=float,
-      default=0.5,
-      help='Training dropout rate')
 
   # Function used to parse --verbosity argument
   def verbosity_arg(value):
     """Parses verbosity argument.
-
     Args:
       value: A member of tf.logging.
     Raises:

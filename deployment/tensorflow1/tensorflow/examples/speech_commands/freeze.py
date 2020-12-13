@@ -13,26 +13,21 @@
 # limitations under the License.
 # ==============================================================================
 r"""Converts a trained checkpoint into a frozen model for mobile inference.
-
 Once you've trained a model using the `train.py` script, you can use this tool
 to convert it into a binary GraphDef file that can be loaded into the Android,
 iOS, or Raspberry Pi example code. Here's an example of how to run it:
-
 bazel run tensorflow/examples/speech_commands/freeze -- \
 --sample_rate=16000 --dct_coefficient_count=40 --window_size_ms=20 \
 --window_stride_ms=10 --clip_duration_ms=1000 \
 --model_architecture=conv \
 --start_checkpoint=/tmp/speech_commands_train/conv.ckpt-1300 \
 --output_file=/tmp/my_frozen_graph.pb
-
 One thing to watch out for is that you need to pass in the same arguments for
 `sample_rate` and other command line variables here as you did for the training
 script.
-
 The resulting graph has an input for WAV-encoded data named 'wav_data', one for
 raw PCM data (as floats in the range -1.0 to 1.0) called 'decoded_sample_data',
 and the output is called 'labels_softmax'.
-
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -64,10 +59,8 @@ def create_inference_graph(wanted_words, sample_rate, clip_duration_ms,
                            clip_stride_ms, window_size_ms, window_stride_ms,
                            feature_bin_count, model_architecture, preprocess):
   """Creates an audio model with the nodes needed for inference.
-
   Uses the supplied arguments to create a model, and inserts the input and
   output nodes that are needed to use the graph for inference.
-
   Args:
     wanted_words: Comma-separated list of the words we're trying to recognize.
     sample_rate: How many samples per second are in the input audio files.
@@ -79,10 +72,8 @@ def create_inference_graph(wanted_words, sample_rate, clip_duration_ms,
     model_architecture: Name of the kind of model to generate.
     preprocess: How the spectrogram is processed to produce features, for
       example 'mfcc', 'average', or 'micro'.
-
   Returns:
     Input and output tensor objects.
-
   Raises:
     Exception: If the preprocessing mode isn't recognized.
   """
@@ -160,7 +151,6 @@ def create_inference_graph(wanted_words, sample_rate, clip_duration_ms,
 
 def save_graph_def(file_name, frozen_graph_def):
   """Writes a graph def file out to disk.
-
   Args:
     file_name: Where to save the file.
     frozen_graph_def: GraphDef proto object to save.
@@ -175,7 +165,6 @@ def save_graph_def(file_name, frozen_graph_def):
 
 def save_saved_model(file_name, sess, input_tensor, output_tensor):
   """Writes a SavedModel out to disk.
-
   Args:
     file_name: Where to save the file.
     sess: TensorFlow session containing the graph.
@@ -268,7 +257,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--window_stride_ms',
       type=float,
-      default=20.0,
+      default=10.0,
       help='How long the stride is between spectrogram timeslices',)
   parser.add_argument(
       '--feature_bin_count',
