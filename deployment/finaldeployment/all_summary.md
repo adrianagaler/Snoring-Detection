@@ -17,11 +17,11 @@
     - Invoke time: 60 mS
     - Memory consumption: 7152 bytes 
 5. Conv 
-    - training accuracy :  % 
-    - Quantized size :  bytes
+    - training accuracy : 93.7 % 
+    - Quantized size :  308168 bytes
 6. Tiny Embedding Conv
-    - training accuracy :  %    
-    - Quantized size :  bytes
+    - training accuracy : 89.9  %    
+    - Quantized size : 8864  bytes
     - Error: "Requested feature_data_ size 536907080 doesn't match 1960. Feature generation failed"
 
 
