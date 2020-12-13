@@ -1,22 +1,28 @@
 1. Low Latency
     - training accuracy : 90.6 % 
-    - Quantized size : 884360 bytes
+    - Quantized size : 884360 bytes 
+    - Cannot deploy due to memory corruption (inputs don't fit in buffer allocated, model expects larger) and size 
 2. Low latency svdf 
     - training accuracy : 87.4 % 
     - Quantized size : 37,449 bytes
+    - Cannot deploy due to memory corruption (deployment code not compatible with model) and size 
 3. Single FC
     - training accuracy : 75.5 % 
     - Quantized size : 8872 bytes
+    - Invoke time: 1mS
+    - Memory consumption: 2544 bytes 
 4. Tiny Conv
     - training accuracy : 91.8 % 
     - Quantized size : 18712 bytes
+    - Invoke time: 60 mS
+    - Memory consumption: 7152 bytes 
 5. Conv 
     - training accuracy :  % 
     - Quantized size :  bytes
 6. Tiny Embedding Conv
     - training accuracy :  %    
     - Quantized size :  bytes
-
+    - Error: "Requested feature_data_ size 536907080 doesn't match 1960. Feature generation failed"
 
 
 Deployment Modifications: 
