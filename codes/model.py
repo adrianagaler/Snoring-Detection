@@ -11,7 +11,6 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-arc', type=str, default = 'single_fc')
 parser.add_argument('-preprocess', type=str, default = 'micro')
-parser.add_argument('-silence', type=float, default = 0)
 parser.add_argument('-bg_volumn', type=str, default = 0)
 
 args = parser.parse_args()
@@ -19,17 +18,16 @@ args = parser.parse_args()
 PREPROCESS = args.preprocess # Other options 'micro', 'average', 'mfcc'
 MODEL_ARCHITECTURE = args.arc # Other options include: single_fc, conv, tiny_conv,
                       # low_latency_conv, low_latency_svdf, tiny_embedding_conv
-SILENCE = args.silence
 BACKGROUND = args.bg_volumn
 
-WANTED_WORDS = "snoring,no_snoring"
+WANTED_WORDS = "snoring"
 
 # The number of steps and learning rates can be specified as comma-separated
 # lists to define the rate at each stage. For example,
 # TRAINING_STEPS=12000,3000 and LEARNING_RATE=0.001,0.0001
 # will run 12,000 training loops in total, with a rate of 0.001 for the first
 # 8,000, and 0.0001 for the final 3,000.
-TRAINING_STEPS = "2500,2500"
+TRAINING_STEPS = "3000,2000"
 LEARNING_RATE = "0.001,0.001"
 
 # Calculate the total number of steps, which is used to identify the checkpoint
@@ -45,17 +43,19 @@ print("Total number of training steps: %s" % TOTAL_STEPS)
 
 
 number_of_labels = WANTED_WORDS.count(',') + 1
-number_of_total_labels = number_of_labels
-
+number_of_total_labels = number_of_labels + 2 # for 'silence' and 'unknown' label
+equal_percentage_of_training_samples = int(100.0/(number_of_total_labels))
+SILENT_PERCENTAGE = equal_percentage_of_training_samples
+UNKNOWN_PERCENTAGE = equal_percentage_of_training_samples
 # Constants which are shared during training and inference
-
+print (SILENT_PERCENTAGE,UNKNOWN_PERCENTAGE)
 WINDOW_STRIDE = 20
 
 
 # Constants used during training only
 VERBOSITY = 'DEBUG' # WARN, DEBUG
 EVAL_STEP_INTERVAL = '25'
-SAVE_STEP_INTERVAL = '100'
+SAVE_STEP_INTERVAL = '500'
 
 # Constants for training directories and filepaths
 DATASET_DIR = '/home/jiayu/Desktop/Snoring-Detection/Snoring_Dataset_@16000'
@@ -85,8 +85,9 @@ QUANT_INPUT_RANGE = QUANT_INPUT_MAX - QUANT_INPUT_MIN
 
 import tensorflow as tf
 
+print ("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/train.py --data_dir={} --data_url='' --wanted_words={} --preprocess={} --window_stride={} --model_architecture={} --how_many_training_steps={} --learning_rate={} --train_dir={} --summaries_dir={} --verbosity={} --eval_step_interval={} --save_step_interval={} --dropout=0 --optimizer='momentum' --batch_size=128 --silence_percentage={} --unknown_percentage={} --background_volume={}".format(DATASET_DIR,WANTED_WORDS,PREPROCESS,WINDOW_STRIDE,MODEL_ARCHITECTURE,TRAINING_STEPS, LEARNING_RATE,TRAIN_DIR,LOGS_DIR,VERBOSITY,EVAL_STEP_INTERVAL,SAVE_STEP_INTERVAL,SILENT_PERCENTAGE,UNKNOWN_PERCENTAGE,BACKGROUND))
 
-os.system("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/train.py --data_dir={} --data_url='' --wanted_words={} --preprocess={} --window_stride={} --model_architecture={} --how_many_training_steps={} --learning_rate={} --train_dir={} --summaries_dir={} --verbosity={} --eval_step_interval={} --save_step_interval={} --dropout=0 --optimizer='momentum' --batch_size=1000 --silence_percentage={} --background_volume={}".format(DATASET_DIR,WANTED_WORDS,PREPROCESS,WINDOW_STRIDE,MODEL_ARCHITECTURE,TRAINING_STEPS, LEARNING_RATE,TRAIN_DIR,LOGS_DIR,VERBOSITY,EVAL_STEP_INTERVAL,SAVE_STEP_INTERVAL,SILENCE,BACKGROUND))
+os.system("python ../deployment/tensorflow1/tensorflow/examples/speech_commands/train.py --data_dir={} --data_url='' --wanted_words={} --preprocess={} --window_stride={} --model_architecture={} --how_many_training_steps={} --learning_rate={} --train_dir={} --summaries_dir={} --verbosity={} --eval_step_interval={} --save_step_interval={} --dropout=0 --optimizer='momentum' --batch_size=128 --silence_percentage={} --unknown_percentage={}".format(DATASET_DIR,WANTED_WORDS,PREPROCESS,WINDOW_STRIDE,MODEL_ARCHITECTURE,TRAINING_STEPS, LEARNING_RATE,TRAIN_DIR,LOGS_DIR,VERBOSITY,EVAL_STEP_INTERVAL,SAVE_STEP_INTERVAL,SILENT_PERCENTAGE,UNKNOWN_PERCENTAGE))
 
 
 os.system('rm -rf {}'.format(SAVED_MODEL))
@@ -109,8 +110,8 @@ SAMPLE_RATE = 16000
 CLIP_DURATION_MS = 1000
 WINDOW_SIZE_MS = 30.0
 FEATURE_BIN_COUNT = 40
-BACKGROUND_FREQUENCY = 0
-BACKGROUND_VOLUME_RANGE = 0
+BACKGROUND_FREQUENCY = 0.8
+BACKGROUND_VOLUME_RANGE = 0.1
 TIME_SHIFT_MS = 100.0
 
 DATA_URL = '' #'https://storage.googleapis.com/download.tensorflow.org/data/speech_commands_v0.02.tar.gz'
@@ -126,7 +127,7 @@ model_settings = models.prepare_model_settings(
     SAMPLE_RATE, CLIP_DURATION_MS, WINDOW_SIZE_MS,
     WINDOW_STRIDE, FEATURE_BIN_COUNT, PREPROCESS)
 audio_processor = input_data.AudioProcessor(
-    DATA_URL, DATASET_DIR,
+    DATA_URL, DATASET_DIR,SILENT_PERCENTAGE,UNKNOWN_PERCENTAGE,
     WANTED_WORDS.split(','), VALIDATION_PERCENTAGE,
     TESTING_PERCENTAGE, model_settings, LOGS_DIR)
 
@@ -146,7 +147,7 @@ with tf.compat.v1.Session() as sess:
   converter.inference_input_type = tf.compat.v1.lite.constants.INT8 #tf.lite.constants.INT8
   converter.inference_output_type = tf.compat.v1.lite.constants.INT8 #tf.lite.constants.INT8
   def representative_dataset_gen():
-    for i in range(100):
+    for i in range(83):
       data, _ = audio_processor.get_data(1, i*1, model_settings,
                                          BACKGROUND_FREQUENCY, 
                                          BACKGROUND_VOLUME_RANGE,
